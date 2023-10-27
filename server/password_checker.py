@@ -1,14 +1,15 @@
-from hashlib import sha256
 import os
+from hashlib import sha256
+from pathlib import Path
 
-DB_FILE = 'db.txt'
+DB_FILE = str(Path(__file__).parent.resolve()) + '/db.txt'
 
 class PasswordChecker:
 
     @staticmethod
-    def Init():
+    def init():
         if not os.path.exists(DB_FILE):
-            raise FileNotFoundError(f'db file is not found')
+            raise FileNotFoundError('db file is not found')
 
     @staticmethod
     def check_credentials(login: str, pass_hash: str) -> int:

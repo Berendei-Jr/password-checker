@@ -3,8 +3,8 @@
 from hashlib import sha256
 import random
 
-logins = ['ivan', 'login', 'abc', 'alexandr', 'andrey', 'petr', 'mister']
-passwords = ['pass', '12345', 'qwerty', 'qwerty123', '123454321', 'zxcvbn', 'vanya2013']
+logins = ['ivan', 'login', 'abcd', 'alex', 'andrey', 'petr', 'nick', 'oleg']
+passwords = ['pass', '12345', 'qwerty', 'qwerty123', '123454321', 'zxcvbn', '2023', 'admin']
 
 with open('db.txt', 'w') as file:
     for i in range(100):

@@ -1,10 +1,10 @@
 import sys
-import pycurl
 import json
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
 
+import pycurl
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.uic import loadUi
 from PyQt5.QtGui import QIcon
@@ -53,12 +53,12 @@ class MyWindow(QMainWindow):
         self.pushButton.clicked.connect(self.perform_check)
         
     def perform_check(self):
-        login = self.lineEdit.text()
-        if not self.lineEdit_2.text():
+        login = self.lineEditLogin.text()
+        if not self.lineEditPass.text():
             QMessageBox.critical(self, 'Error', "Password field can't be empty")
             return
 
-        password = self.lineEdit_2.text()
+        password = self.lineEditPass.text()
         try:
             result = perform_request(login, password)
         except ConnectionError as err:

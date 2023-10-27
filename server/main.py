@@ -7,7 +7,7 @@ class Request(BaseModel):
     login: str
     password_hash: str
 
-PasswordChecker.Init()
+PasswordChecker.init()
 app = FastAPI()
 
 @app.post("/api/v1/password_check")
