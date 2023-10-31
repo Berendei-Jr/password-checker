@@ -5,21 +5,22 @@ from io import BytesIO
 from pathlib import Path
 
 import pycurl
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt5.uic import loadUi
-from PyQt5.QtGui import QIcon
+from ui_new_main import *
 
 SERVER_URL = 'http://127.0.0.1:8000/api/v1/password_check'
 
-def perform_request(login: str, password: str) -> int:
+def perform_request(login: str, password: str, accuracy: int) -> int:
     pass_hash = sha256(password.encode('utf-8')).hexdigest()
+    hash_len = int((accuracy/100)*len(pass_hash))
+    hash_to_send = pass_hash[:hash_len]
+
     headers = [
         'accept: application/json',
         'Content-Type: application/json',
     ]
     data = {
         'login': login,
-        'password_hash': pass_hash
+        'password_hash': hash_to_send
     }
     data_json = json.dumps(data)
 
@@ -45,35 +46,72 @@ def perform_request(login: str, password: str) -> int:
 
 class MyWindow(QMainWindow):
     def __init__(self):
+        self.initial_accuracy = 25
+        self.middle_accuracy = 50
+        self.max_accuracy = 100
+
         super().__init__()
-        loadUi(str(Path(__file__).parent.resolve()) + '/main.ui', self)
-        self.setWindowTitle("Credentials checker")
-        self.setWindowIcon(QIcon("key.ico"))
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+
+        self.widgets = self.ui
+
+        self.widgets.stackedWidget.setCurrentWidget(self.widgets.home)
+
+        self.show()
         self.setFixedSize(300, 360)
-        self.pushButton.clicked.connect(self.perform_check)
-        
-    def perform_check(self):
-        login = self.lineEditLogin.text()
-        if not self.lineEditPass.text():
-            QMessageBox.critical(self, 'Error', "Password field can't be empty")
-            return
+        self.widgets.pushButtonCheck.clicked.connect(self.perform_check)
+        self.widgets.pushButton_2.clicked.connect(self.second_check)
+        self.widgets.pushButton_4.clicked.connect(self.final_check)
+        self.widgets.pushButton_5.clicked.connect(sys.exit)
+        self.widgets.pushButton_3.clicked.connect(sys.exit)
 
-        password = self.lineEditPass.text()
-        try:
-            result = perform_request(login, password)
-        except ConnectionError as err:
-            QMessageBox.critical(self, 'Error', str(err))
+    def second_check(self):
+        accuracy = self.middle_accuracy if self.widgets.radioButton.isChecked() else self.max_accuracy
+        result = perform_request(self.login, self.password, accuracy)
+        if result == 0:
+            QMessageBox.information(self, 'Success', 'Credentials are secure')
             return
+        else:
+            if accuracy == self.max_accuracy:
+                if result == 1:
+                    QMessageBox.warning(self, 'Warning', 'Password is compromised!')
+                else:
+                    QMessageBox.critical(self, 'Danger', 'Credentials pair is compromised!')
+                self.widgets.stackedWidget.setCurrentWidget(self.widgets.home)
+            else:
+                self.widgets.stackedWidget.setCurrentWidget(self.widgets.page_3)
 
+    def final_check(self):
+        result = perform_request(self.login, self.password, self.max_accuracy)
         if result == 0:
             QMessageBox.information(self, 'Success', 'Credentials are secure')
         elif result == 1:
             QMessageBox.warning(self, 'Warning', 'Password is compromised!')
         else:
             QMessageBox.critical(self, 'Danger', 'Credentials pair is compromised!')
+        self.widgets.stackedWidget.setCurrentWidget(self.widgets.home)
+
+    def perform_check(self):
+        self.login = self.widgets.lineEditLogin.text()
+        if not self.widgets.lineEditPass.text():
+            QMessageBox.critical(self, 'Error', "Password field can't be empty")
+            return
+
+        self.password = self.widgets.lineEditPass.text()
+        try:
+            result = perform_request(self.login, self.password, self.initial_accuracy)
+        except ConnectionError as err:
+            QMessageBox.critical(self, 'Error', str(err))
+            return
+
+        if result == 0:
+            QMessageBox.information(self, 'Success', 'Credentials are secure')
+            return
+
+        self.widgets.stackedWidget.setCurrentWidget(self.widgets.page_2)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MyWindow()
-    window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

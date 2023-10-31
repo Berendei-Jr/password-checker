@@ -18,7 +18,7 @@ class PasswordChecker:
 
             for line in file:
                 words = line.split()
-                if words[2] == pass_hash:
+                if words[2].startswith(pass_hash):
                     pass_found = True
                     if words[0] == login:
                         return 2
